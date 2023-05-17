@@ -73,11 +73,8 @@ def main():
 
     max_selled_products = find_max_idx(lines, key=lambda x: x[4])
     max_profit_products = find_max_idx(lines, key=lambda x: x[6])
-    max_data = {
-        "Товар(ы), продавшиеся наибольшее кол-во раз": max_selled_products,
-        "Товар(ы), принесшие наибольшую выручку": max_profit_products
-    }
-    max_dataframe = pd.DataFrame(max_data)
+
+
     print("Наибольшее кол-во продаж:")
     for idx in max_selled_products:
         print(f"\tТовар: {table['Название товара'][idx]}, продано: {table['Количество продаж'][idx]}")
@@ -95,17 +92,20 @@ def main():
 
     # Считаем процент выручки для каждого товара с округлением до двух знаков. Временно преобразуем в integer.
     for i in range(products_amount):
-        revenue_percent.append(int(round((table['Общая стоимость'][i] / revenue) * 100, 2) * 100))
+        revenue_percent.append((str(round((table['Общая стоимость'][i] / revenue) * 100, 3)) + "%"))
     table['Процент выручки'] = tuple(revenue_percent)
 
     # Сортируем таблицу по проценту выручки и выводим результат
-    sorted_table_idxs, _ = bubble_sort_idx(list(table["Процент выручки"]))
-    for idx in sorted_table_idxs[::-1]:
-        print(
-                f"\tТовар: {table['Название товара'][idx]},"
-                f" продано: {table['Количество продаж'][idx]} шт,"
-                f" примерно {table['Процент выручки'][idx] / 100}% от общей выручки"
-              )
+    sorted_table_idxs, _ = bubble_sort_idx(list(map(lambda val: float(val.replace('%', '')), table["Процент выручки"])))
+
+    # На основе sorted_table_idxs[::-1] создаём dataframe
+    df = pd.DataFrame()
+    for header in ["Название товара", "Количество продаж", "Процент выручки"]:
+        df[header] = [table[header][idx] for idx in sorted_table_idxs[::-1]]
+
+    # Выводим dataframe в консоль
+    print("\nТаблица в виде dataframe:")
+    print(df.to_string(index=False))
 
     # Дополнительное задание хз зачем
     # Отсортируем цены по возрастанию
@@ -116,9 +116,7 @@ def main():
 
     # Найдём эту цену в отсортированном списке
     iphone_price_idx = binary_search(sorted_prices, iphone_price)
-    print(f"\nАйфон в списке отсортированных цен находится на {iphone_price_idx} месте.")
-
-    print(max_dataframe)
+    print(f"\nАйфон в списке отсортированных цен находится на {iphone_price_idx + 1} месте.")
 
 
 if __name__ == "__main__":
